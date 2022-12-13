@@ -2,7 +2,14 @@ const router = require('express').Router();
 const passport = require('passport');
 const { pick } = require('lodash');
 const { DEFAULT_PER_PAGE_COUNT } = require('../config/constants');
-const { Product, Unit, Category, Images, Zone } = require('../models');
+const {
+  Product,
+  Unit,
+  Category,
+  Images,
+  Zone,
+  ProductLog,
+} = require('../models');
 
 router.all('*', passport.authenticate('jwt'));
 
@@ -52,7 +59,8 @@ router.get('/', (req, res, next) => {
  * @property {string} description
  * @property {integer} qty
  * @property {number} costPrice
- * @property {number} salePrice
+ * @property {number} retailPrice
+ * @property {number} wholesalePrice
  * @property {string} imageId
  * @property {string} categoryId
  * @property {string} zoneId
@@ -68,24 +76,59 @@ router.get('/', (req, res, next) => {
  * @param {ProductCreationData} request.body.required - Product data
  * @return {Product} 200 - Created Product
  */
-router.post('/', (req, res, next) => {
-  Product.create(
-    pick(req.body, [
-      'code',
-      'name',
-      'description',
-      'qty',
-      'costPrice',
-      'salePrice',
-      'imageId',
-      'categoryId',
-      'zoneId',
-      'unitId',
-      'expiredDate',
-    ])
-  )
-    .then((product) => res.json(product))
-    .catch(next);
+router.post('/', async (req, res, next) => {
+  const transaction = await Product.sequelize.transaction();
+  try {
+    const unit = await Unit.findByPk(req.body.unitId);
+    if (unit === null || unit === undefined) {
+      throw new Error('unit id cannot be null.');
+    }
+
+    const product = await Product.create(
+      pick(req.body, [
+        'code',
+        'name',
+        'description',
+        'qty',
+        'costPrice',
+        'retailPrice',
+        'wholesalePrice',
+        'imageId',
+        'categoryId',
+        'zoneId',
+        'unitId',
+        'expiredDate',
+      ]),
+      { transaction }
+    );
+    if (product === null || product === undefined) {
+      throw new Error('can not save product.');
+    }
+
+    const log = {
+      productId: product.id,
+      costPrice: req.body.costPrice,
+      qty: req.body.qty,
+      actionType: 'create',
+    };
+    const savedLog = await ProductLog.create(
+      pick(log, ['productId', 'qty', 'costPrice', 'actionType']),
+      {
+        transaction,
+      }
+    );
+
+    if (savedLog === null || savedLog === undefined) {
+      throw new Error('can not save savedLog.');
+    }
+
+    await transaction.commit();
+
+    return res.json(product);
+  } catch (error) {
+    await transaction.rollback();
+    throw new Error(error);
+  }
 });
 
 /**
@@ -118,7 +161,8 @@ router.patch('/:id', (req, res, next) =>
       'description',
       'qty',
       'costPrice',
-      'salePrice',
+      'retailPrice',
+      'wholesalePrice',
       'imageId',
       'categoryId',
       'zoneId',

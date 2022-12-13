@@ -20,12 +20,15 @@ module.exports = (sequelize, DataTypes) => {
       },
       productId: {
         type: DataTypes.STRING,
+        allowNull: false,
       },
       qty: {
         type: DataTypes.INTEGER,
+        allowNull: false,
       },
       costPrice: {
         type: DataTypes.FLOAT,
+        allowNull: false,
       },
       actionType: {
         type: DataTypes.STRING,
@@ -33,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     {}
   );
-  ProductLog.associate = function() {
+  ProductLog.associate = function () {
     // associations can be defined here
   };
 

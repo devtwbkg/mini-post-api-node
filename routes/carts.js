@@ -2,8 +2,12 @@ const router = require('express').Router();
 const passport = require('passport');
 const { pick } = require('lodash');
 const { Op } = require('sequelize');
-const { DEFAULT_PER_PAGE_COUNT, BEARER_KEY } = require('../config/constants');
-const { Cart, CartProduct, Product, User } = require('../models');
+const {
+  DEFAULT_PER_PAGE_COUNT,
+  BEARER_KEY,
+  INPROGRESS,
+} = require('../config/constants');
+const { Cart, CartProduct, Product } = require('../models');
 
 router.all('*', passport.authenticate(BEARER_KEY));
 
@@ -49,7 +53,7 @@ router.get('/', (req, res, next) => {
 router.get('/my-cart', async (req, res, next) => {
   Cart.findOne({
     where: {
-      [Op.and]: [{ customerId: req.user.id }, { cartStatus: 'inprogress' }],
+      [Op.and]: [{ customerId: req.user.id }, { cartStatus: INPROGRESS }],
     },
     order: [['createdAt', 'DESC']],
     include: [

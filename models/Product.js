@@ -36,12 +36,19 @@ module.exports = (sequelize, DataTypes) => {
       },
       qty: {
         type: DataTypes.INTEGER,
+        allowNull: false,
       },
       costPrice: {
         type: DataTypes.FLOAT,
+        allowNull: false,
       },
-      salePrice: {
+      retailPrice: {
         type: DataTypes.FLOAT,
+        allowNull: false,
+      },
+      wholesalePrice: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
       },
       imageId: {
         type: DataTypes.STRING,
@@ -54,6 +61,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       unitId: {
         type: DataTypes.STRING,
+        allowNull: false,
       },
       expiredDate: {
         type: DataTypes.DATE,

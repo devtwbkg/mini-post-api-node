@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+
 const highlightSQL = require('sequelize-log-syntax-colors').default;
 
 module.exports = new Sequelize(
