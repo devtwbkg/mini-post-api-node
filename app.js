@@ -2,7 +2,7 @@ require('dotenv-flow').config();
 const express = require('express');
 
 const configure = require('./config');
-const sequelize = require('./config/db');
+const { sequelize } = require('./config/db');
 const routes = require('./routes');
 const defaultErrorHandler = require('./helpers/defaultErrorHandler');
 

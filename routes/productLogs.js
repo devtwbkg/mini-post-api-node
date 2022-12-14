@@ -2,10 +2,10 @@ const router = require('express').Router();
 const passport = require('passport');
 const { pick } = require('lodash');
 const { DEFAULT_PER_PAGE_COUNT } = require('../config/constants');
-const { ProductLog } = require('../models');
+const { sequelize } = require('../config/db');
+const { ProductLog, Product } = require('../models');
 
 router.all('*', passport.authenticate('jwt'));
-
 
 /**
  * @typedef {object} ProductLogPaginated
@@ -56,17 +56,47 @@ router.get('/', (req, res, next) => {
  * @param {ProductLogCreationData} request.body.required - ProductLog data
  * @return {ProductLog} 200 - Created ProductLog
  */
-router.post('/', (req, res, next) => {
-  ProductLog.create(pick(req.body, [
-    'productId',
-    'qty',
-    'costPrice',
-    'actionType',
-  ]))
-    .then((productLog) => res.json(productLog))
-    .catch(next);
-});
+router.post('/', async (req, res, next) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const productLog = await ProductLog.create(
+      pick(req.body, ['productId', 'qty', 'costPrice', 'actionType']),
+      {
+        transaction,
+      }
+    );
 
+    if (productLog === null || productLog === undefined) {
+      throw new Error(`product log can not save.`);
+    }
+    const product = await Product.findByPk(req.body.productId);
+    if (product === null || product === undefined) {
+      throw new Error(`product ${req.body.productId} not found.`);
+    }
+
+    const constPrice = product.costPrice + req.body.costPrice;
+    const qty = product.qty + req.body.qty;
+    product.qty = qty;
+    product.costPrice = constPrice / qty;
+    const productUpdated = Product.update(product, {
+      where: { id: req.body.productId },
+      returning: true,
+      transaction,
+    });
+
+    if (productUpdated === null || productUpdated === undefined) {
+      await transaction.rollback();
+      throw new Error(`product can not update.`);
+    }
+
+    await transaction.commit();
+
+    return res.json(productLog);
+  } catch (error) {
+    await transaction.rollback();
+    throw new Error(error);
+  }
+});
 
 /**
  * GET /api/product-logs/{id}
@@ -93,12 +123,7 @@ router.get('/:id', (req, res, next) =>
  */
 router.patch('/:id', (req, res, next) =>
   ProductLog.update(
-    pick(req.body, [
-      'productId',
-      'qty',
-      'costPrice',
-      'actionType',
-    ]),
+    pick(req.body, ['productId', 'qty', 'costPrice', 'actionType']),
     {
       where: { id: req.params.id },
       returning: true,

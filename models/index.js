@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const Sequelize = require('sequelize');
-const sequelize = require('../config/db');
+// const Sequelize = require('sequelize');
+const { sequelize, Sequelize } = require('../config/db');
 
 const models = {};
 

@@ -154,29 +154,53 @@ router.get('/:id', (req, res, next) =>
  * @param {ProductCreationData} request.body.required
  * @return {Product} 200 - Updated Product
  */
-router.patch('/:id', (req, res, next) =>
-  Product.update(
-    pick(req.body, [
-      'name',
-      'description',
-      'qty',
-      'costPrice',
-      'retailPrice',
-      'wholesalePrice',
-      'imageId',
-      'categoryId',
-      'zoneId',
-      'unitId',
-      'expiredDate',
-    ]),
-    {
-      where: { id: req.params.id },
-      returning: true,
+router.patch('/:id', async (req, res, next) => {
+  const transaction = await Product.sequelize.transaction();
+  try {
+    const product = Product.update(
+      pick(req.body, [
+        'name',
+        'description',
+        'qty',
+        'costPrice',
+        'retailPrice',
+        'wholesalePrice',
+        'imageId',
+        'categoryId',
+        'zoneId',
+        'unitId',
+        'expiredDate',
+      ]),
+      {
+        where: { id: req.params.id },
+        returning: true,
+      }
+    );
+    const log = {
+      productId: product.id,
+      costPrice: req.body.costPrice,
+      qty: req.body.qty,
+      actionType: 'update',
+    };
+    const savedLog = await ProductLog.create(
+      pick(log, ['productId', 'qty', 'costPrice', 'actionType']),
+      {
+        transaction,
+      }
+    );
+
+    if (savedLog === null || savedLog === undefined) {
+      throw new Error('can not save savedLog.');
     }
-  )
-    .then(([count, [product]]) => res.json(product))
-    .catch(next)
-);
+
+    await transaction.commit();
+
+    return res.json(product);
+  } catch (error) {
+    await transaction.rollback();
+    throw new Error(error);
+  }
+});
 
 /**
  * DELETE /api/products/{id}

@@ -2,7 +2,8 @@ const Sequelize = require('sequelize');
 
 const highlightSQL = require('sequelize-log-syntax-colors').default;
 
-module.exports = new Sequelize(
+const conn = {};
+const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
   process.env.DB_PASS,
@@ -18,3 +19,6 @@ module.exports = new Sequelize(
     dialect: 'postgres',
   }
 );
+conn.sequelize = sequelize;
+conn.Sequelize = Sequelize;
+module.exports = conn;
