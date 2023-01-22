@@ -1,10 +1,10 @@
 const router = require('express').Router();
 const passport = require('passport');
 const { pick } = require('lodash');
-const { DEFAULT_PER_PAGE_COUNT } = require('../config/constants');
+const { DEFAULT_PER_PAGE_COUNT, BEARER_KEY } = require('../config/constants');
 const { Dealer } = require('../models');
 
-router.all('*', passport.authenticate('jwt'));
+router.all('*', passport.authenticate(BEARER_KEY));
 
 
 /**

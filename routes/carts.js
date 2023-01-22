@@ -4,12 +4,12 @@ const { pick } = require('lodash');
 const { Op } = require('sequelize');
 const {
   DEFAULT_PER_PAGE_COUNT,
-  BEARER_KEY,
   INPROGRESS,
+  JWT_BEARER,
 } = require('../config/constants');
 const { Cart, CartProduct, Product } = require('../models');
 
-router.all('*', passport.authenticate(BEARER_KEY));
+router.all('*', passport.authenticate(JWT_BEARER));
 
 /**
  * @typedef {object} CartPaginated
@@ -33,6 +33,13 @@ router.get('/', (req, res, next) => {
   Cart.findAndCountAll({
     offset: perPageCount * pageIndex,
     limit: perPageCount,
+    include: [
+      {
+        model: CartProduct,
+        as: 'cartItems',
+        include: { model: Product, as: 'product' },
+      },
+    ],
   })
     .then(({ count, rows }) =>
       res.json({
@@ -84,7 +91,28 @@ router.get('/my-cart', async (req, res, next) => {
  * @property {number} redeemPointAmount
  * @property {string} customerId
  */
+/**
+ * @typedef {object} CartInitData
+ * @property {string} customerId
+ */
 
+/**
+ * POST /api/carts/init
+ * @summary Create new Cart
+ * @tags Carts
+ * @security JWT
+ * @param {CartInitData} request.body.required - Cart data
+ * @return {Cart} 200 - Created Cart
+ */
+router.post('/init', (req, res, next) => {
+  const cartData = {
+    cartStatus: INPROGRESS,
+    customerId: req.body.customerId,
+  };
+  Cart.create(cartData)
+    .then((cart) => res.json(cart))
+    .catch(next);
+});
 /**
  * POST /api/carts
  * @summary Create new Cart
@@ -123,7 +151,18 @@ router.post('/', (req, res, next) => {
  * @return {Cart} 200 - Cart
  */
 router.get('/:id', (req, res, next) =>
-  Cart.findByPk(req.params.id)
+  Cart.findOne({
+    where: {
+      id: req.params.id,
+    },
+    include: [
+      {
+        model: CartProduct,
+        as: 'cartItems',
+        include: { model: Product, as: 'product' },
+      },
+    ],
+  })
     .then((cart) => res.json(cart))
     .catch(next)
 );

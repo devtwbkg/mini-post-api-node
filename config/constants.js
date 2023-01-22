@@ -15,7 +15,7 @@ module.exports = {
   UPLOAD_SERVER_PATH: path.resolve(`${__dirname}/../public${UPLOAD_UI_PATH}`),
   ADMIN_EMAIL: process.env.ADMIN_EMAIL,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
-  BEARER_KEY: process.env.BEARER_KEY,
+  JWT_BEARER: process.env.BEARER_KEY,
   DEFAULT_CUSTOMER_CODE: process.env.DEFAULT_CUSTOMER_CODE,
   DEFAULT_CUSTOMER_NAME: process.env.DEFAULT_CUSTOMER_NAME,
   WHOLESALE: process.env.WHOLESALE,

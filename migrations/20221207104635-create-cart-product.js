@@ -16,7 +16,7 @@ module.exports = {
       qty: {
         type: DataTypes.INTEGER,
       },
-      salePrice: {
+      retailPrice: {
         type: DataTypes.FLOAT,
       },
       costPrice: {

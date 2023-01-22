@@ -6,14 +6,17 @@ const { User } = require('../models');
 
 module.exports = function (app) {
   passport.use(
-    'jwt',
+    'Bearer',
     new passportJwt.Strategy(
       {
-        jwtFromRequest: passportJwt.ExtractJwt.fromAuthHeaderWithScheme('jwt'),
+        jwtFromRequest:
+          passportJwt.ExtractJwt.fromAuthHeaderWithScheme('Bearer'),
         secretOrKey: SECRET_KEY,
         session: false,
       },
-      (payload, done) => done(null, payload)
+      (payload, done) => {
+        return done(null, payload);
+      }
     )
   );
 

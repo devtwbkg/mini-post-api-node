@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
    * @property {string} cartId
    * @property {string} productId
    * @property {integer} qty
-   * @property {number} salePrice
+   * @property {number} retailPrice
    * @property {number} costPrice
    * @property {number} discount
    * @property {string} createdAt Date ISO format
@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       qty: {
         type: DataTypes.INTEGER,
       },
-      salePrice: {
+      retailPrice: {
         type: DataTypes.FLOAT,
       },
       costPrice: {

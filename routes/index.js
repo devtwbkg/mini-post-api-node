@@ -13,6 +13,8 @@ const images = require('./images');
 const products = require('./products');
 const units = require('./units');
 const zones = require('./zones');
+const saleType = require('./saleTypes');
+const cartType = require('./cartTypes');
 // const admin = require('./admin');
 
 router.all('*', unhandledRejectionHandler);
@@ -29,6 +31,8 @@ router.use('/images', images);
 router.use('/products', products);
 router.use('/units', units);
 router.use('/zones', zones);
+router.use('/sale-types', saleType);
+router.use('/cart-types', cartType);
 // router.use('/admin', admin);
 
 module.exports = router;

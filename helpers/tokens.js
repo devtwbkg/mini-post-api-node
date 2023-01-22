@@ -31,7 +31,7 @@ const createAndSaveAuthTokens = async (user, req) => {
     req.connection.remoteAddress;
   await user.save();
 
-  return { userId: user.id, accessToken: `JWT ${token}`, refreshToken };
+  return { userId: user.id, accessToken: `Bearer ${token}`, refreshToken };
 };
 
 const createAndSaveResetPasswordToken = async (user) => {

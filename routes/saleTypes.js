@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { pick } = require('lodash');
-const { DEFAULT_PER_PAGE_COUNT } = require('../config/constants');
+const { DEFAULT_PER_PAGE_COUNT, BEARER_KEY } = require('../config/constants');
 const { SaleType } = require('../models');
 
 

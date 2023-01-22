@@ -1,11 +1,11 @@
 const router = require('express').Router();
 const passport = require('passport');
 const { pick } = require('lodash');
-const { DEFAULT_PER_PAGE_COUNT } = require('../config/constants');
+const { DEFAULT_PER_PAGE_COUNT, BEARER_KEY } = require('../config/constants');
 const { sequelize } = require('../config/db');
 const { ProductLog, Product } = require('../models');
 
-router.all('*', passport.authenticate('jwt'));
+router.all('*', passport.authenticate(BEARER_KEY));
 
 /**
  * @typedef {object} ProductLogPaginated
@@ -74,24 +74,40 @@ router.post('/', async (req, res, next) => {
       throw new Error(`product ${req.body.productId} not found.`);
     }
 
-    const constPrice = product.costPrice + req.body.costPrice;
-    const qty = product.qty + req.body.qty;
-    product.qty = qty;
-    product.costPrice = constPrice / qty;
-    const productUpdated = Product.update(product, {
-      where: { id: req.body.productId },
-      returning: true,
-      transaction,
-    });
+    product.qty = totalQty;
+
+    if (Number(req.body.costPrice) > Number(product.costPrice)) {
+      product.costPrice = Number(req.body.costPrice);
+    }
+
+    const productUpdated = await Product.update(
+      pick(product, [
+        'name',
+        'description',
+        'qty',
+        'costPrice',
+        'retailPrice',
+        'wholesalePrice',
+        'imageId',
+        'categoryId',
+        'zoneId',
+        'unitId',
+        'expiredDate',
+      ]),
+      {
+        where: { id: req.body.productId },
+        returning: true,
+        transaction,
+      }
+    );
 
     if (productUpdated === null || productUpdated === undefined) {
-      await transaction.rollback();
       throw new Error(`product can not update.`);
     }
 
     await transaction.commit();
 
-    return res.json(productLog);
+    return res.json({ log: productLog, product });
   } catch (error) {
     await transaction.rollback();
     throw new Error(error);

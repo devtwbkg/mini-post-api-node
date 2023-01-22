@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const passport = require('passport');
 const { pick } = require('lodash');
-const { DEFAULT_PER_PAGE_COUNT } = require('../config/constants');
+const { DEFAULT_PER_PAGE_COUNT, BEARER_KEY } = require('../config/constants');
+const { sequelize } = require('../config/db');
 const {
   Product,
   Unit,
@@ -11,7 +12,7 @@ const {
   ProductLog,
 } = require('../models');
 
-router.all('*', passport.authenticate('jwt'));
+router.all('*', passport.authenticate(BEARER_KEY));
 
 /**
  * @typedef {object} ProductPaginated
@@ -77,7 +78,7 @@ router.get('/', (req, res, next) => {
  * @return {Product} 200 - Created Product
  */
 router.post('/', async (req, res, next) => {
-  const transaction = await Product.sequelize.transaction();
+  const transaction = await sequelize.transaction();
   try {
     const unit = await Unit.findByPk(req.body.unitId);
     if (unit === null || unit === undefined) {
@@ -155,9 +156,9 @@ router.get('/:id', (req, res, next) =>
  * @return {Product} 200 - Updated Product
  */
 router.patch('/:id', async (req, res, next) => {
-  const transaction = await Product.sequelize.transaction();
+  const transaction = await sequelize.transaction();
   try {
-    const product = Product.update(
+    const product = await Product.update(
       pick(req.body, [
         'name',
         'description',
